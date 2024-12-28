@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer>
+        let customers = [];
+
+        async function saveCustomer(event) {
+            event.preventDefault();
+
+            const customerPics = document.getElementById('customerPics').files;
+            const customerName = document.getElementById('customerName').value;
+            const customerNumber = document.getElementById('customerNumber').value;
+            const licensePlate = document.getElementById('licensePlate').value;
+            const Carname = document.getElementById('Carname').value;
+
+            const photosBase64 = [];
+            for (const file of customerPics) {
+                const reader = new FileReader();
+                const photoBase64 = await new Promise((resolve) => {
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(file);
+                });
+                photosBase64.push(photoBase64);
+            }
+
+            console.log('Photos Base64 Array:', photosBase64); // Debugging log
+
+            const customerData = {
+                id: Date.now(),
+                Carname: Carname,
+                name: customerName,
+                number: customerNumber,
+                license_plate: licensePlate,
+                photos: photosBase64,
+                date: new Date().toISOString()
+            };
+
+            const response = await fetch('http://localhost:5000/customers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(customerData)
+            });
+
+            if (response.ok) {
+                alert('Customer saved successfully!');
+                document.getElementById('addCustomerForm').reset();
+                document.getElementById('addCustomerModal').style.display = 'none';
+                loadCustomers();
+            } else {
+                alert('Failed to save customer. Please try again.');
+            }
+        }
+
+
+        async function loadCustomers() {
+            const response = await fetch('http://localhost:5000/customers');
+            customers = await response.json();
+            displayCustomers(customers);
+        }
+
+        function displayCustomers(customerList) {
+            const customerListElement = document.getElementById('customerList');
+            customerListElement.innerHTML = '';
+
+            customerList.forEach(customer => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${customer.Carname} - ${customer.number}`;
+                listItem.classList.add('customer-item');
+                listItem.setAttribute('data-id', customer.id);
+                listItem.addEventListener('click', () => openCustomerDetailsInNewTab(customer));
+                customerListElement.appendChild(listItem);
+            });
+        }
+
+        function openCustomerDetailsInNewTab(customer) {
+            const newTab = window.open('', '_blank');
+            if (!customer || !customer.photos || !customer.name || !customer.license_plate) {
+                newTab.document.write('<h1>Error: Customer details are incomplete!</h1>');
+                newTab.document.close();
+                return;
+            }
+
+            const photosHtml = customer.photos.map(photo => `
+                <img src="data:image/png;base64,${photo}" alt="Customer Photo" style="width: 200px; height: 200px; object-fit: cover; margin-right: 10px;">
+            `).join('');
+
+            newTab.document.write(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Customer Details</title>
+            <link rel="stylesheet" href="details.css">
+            </head>
+                <body>
+                    <h1>Customer Details</h1>
+                    <div class="photos">${photosHtml}</div>
+                    <div class="details">
+                        <p><strong>Name:</strong> ${customer.name}</p>
+                        <p><strong>Car Name:</strong> ${customer.Carname}</p>
+                        <p><strong>Phone Number:</strong> ${customer.number}</p>
+                        <p><strong>License Plate:</strong> ${customer.license_plate}</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            newTab.document.close();
+        }
+
+        function sortCustomers(criteria) {
+            if (criteria === 'name') {
+                customers.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (criteria === 'date') {
+                customers.sort((a, b) => new Date(b.date) - new Date(a.date));
+            }
+            displayCustomers(customers);
+        }
+
+        function searchCustomers() {
+            const query = document.getElementById('searchBar').value.toLowerCase();
+            const filteredCustomers = customers.filter(customer =>
+                customer.name.toLowerCase().includes(query) ||
+                customer.license_plate.toLowerCase().includes(query)
+            );
+            displayCustomers(filteredCustomers);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCustomers();
+
+            document.getElementById('addCustomerForm').addEventListener('submit', saveCustomer);
+            document.getElementById('addCustomerBtn').addEventListener('click', () => {
+                document.getElementById('addCustomerModal').style.display = 'block';
+            });
+            document.getElementById('closeModal').addEventListener('click', () => {
+                document.getElementById('addCustomerModal').style.display = 'none';
+            });
+            document.getElementById('searchBar').addEventListener('input', searchCustomers);
+            document.getElementById('sortByName').addEventListener('click', () => sortCustomers('name'));
+            document.getElementById('sortByDate').addEventListener('click', () => sortCustomers('date'));
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Customer Management System</h1>
+    </header>
+
+    <main>
+        <div class="controls">
+            <div class="search-bar">
+                <input type="text" id="searchBar" placeholder="Search vehicles or customers">
+            </div>
+            <div class="sort-buttons">
+                <button id="sortByName">Sort by Name</button>
+                <button id="sortByDate">Sort by Date</button>
+            </div>
+        </div>
+
+        <div class="customer-list">
+            <ul id="customerList">
+                <!-- Customer entries will populate here -->
+            </ul>
+        </div>
+
+        <button id="addCustomerBtn">Add New Customer</button>
+    </main>
+
+    <div id="addCustomerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <h2>Add New Customer</h2>
+            <form id="addCustomerForm">
+                <label for="customerPics">Photos:</label>
+                <input type="file" id="customerPics" accept="image/*" multiple>
+
+                <label for="customerName">Name:</label>
+                <input type="text" id="customerName" required>
+
+                <label for="customerNumber">Phone Number:</label>
+                <input type="tel" id="customerNumber" required>
+
+                <label for="Carname">Car Name:</label>
+                <input type="tel" id="Carname" required>
+
+                <label for="licensePlate">License Plate Number:</label>
+                <input type="text" id="licensePlate" required>
+
+                <button type="submit">Save Customer</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
