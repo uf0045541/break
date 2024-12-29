@@ -11,6 +11,8 @@
         async function saveCustomer(event) {
             event.preventDefault();
 
+            console.log('Customer Data:', customerData); // Check the data being sent
+            
             const customerPics = document.getElementById('customerPics').files;
             const customerName = document.getElementById('customerName').value;
             const customerNumber = document.getElementById('customerNumber').value;
