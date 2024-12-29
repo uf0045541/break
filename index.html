@@ -41,7 +41,8 @@
                 date: new Date().toISOString()
             };
 
-            const response = await fetch('http://192.168.242.196:5000', {
+            const backendBaseUrl = 'http://192.168.242.196:5000';
+            const response = await fetch('${backendBaseUrl}/customers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -61,7 +62,7 @@
 
 
         async function loadCustomers() {
-            const response = await fetch('http://192.168.242.196:5000');
+            const response = await fetch('${backendBaseUrl}/customers');
             customers = await response.json();
             displayCustomers(customers);
         }
