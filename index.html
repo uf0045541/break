@@ -41,7 +41,7 @@
                 date: new Date().toISOString()
             };
 
-            const response = await fetch('https://break-91w5.onrender.com', {
+            const response = await fetch('http://localhost:5000/customers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -61,7 +61,7 @@
 
 
         async function loadCustomers() {
-            const response = await fetch('https://break-91w5.onrender.com');
+            const response = await fetch('http://localhost:5000/customers');
             customers = await response.json();
             displayCustomers(customers);
         }
