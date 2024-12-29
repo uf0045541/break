@@ -42,7 +42,7 @@ def get_customers():
 @app.route('/customers', methods=['POST'])
 def add_customer():
     data = request.json
-     print("Received Data:", data)  # Debugging
+    print("Received Data:", data)  # Debugging
 
     if not data.get("photos") or not isinstance(data["photos"], list):
         return jsonify({"error": "Photos array is missing or invalid"}), 400
