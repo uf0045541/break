@@ -6,6 +6,15 @@ import json
 app = Flask(__name__)
 CORS(app)
 
+# Load environment variables
+app.config['ENV'] = os.getenv('FLASK_ENV', 'development')  # Default to 'development'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///customer_data.db')
+
+@app.route('/')
+def index():
+    return f"Environment: {app.config['ENV']}, Database: {DATABASE_URL}"
+
 # Directory to save customer data
 DATA_DIR = 'customer_data'
 os.makedirs(DATA_DIR, exist_ok=True)
