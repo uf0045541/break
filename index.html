@@ -11,8 +11,6 @@
         async function saveCustomer(event) {
             event.preventDefault();
 
-            console.log('Customer Data:', customerData); // Check the data being sent
-            
             const customerPics = document.getElementById('customerPics').files;
             const customerName = document.getElementById('customerName').value;
             const customerNumber = document.getElementById('customerNumber').value;
@@ -41,8 +39,7 @@
                 date: new Date().toISOString()
             };
 
-            const backendBaseUrl = 'http://localhost:5000';
-            const response = await fetch('${backendBaseUrl}/customers', {
+            const response = await fetch('http://localhost:5000/customers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -62,7 +59,7 @@
 
 
         async function loadCustomers() {
-            const response = await fetch('${backendBaseUrl}/customers');
+            const response = await fetch('http://localhost:5000/customers');
             customers = await response.json();
             displayCustomers(customers);
         }
