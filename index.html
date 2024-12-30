@@ -41,7 +41,7 @@
                 date: new Date().toISOString()
             };
 
-            const backendBaseUrl = ' https://ngrok.com/r/iep';
+            const backendBaseUrl = 'http://localhost:5000';
             const response = await fetch('${backendBaseUrl}/customers', {
                 method: 'POST',
                 headers: {
